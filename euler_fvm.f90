@@ -14,6 +14,7 @@ module variables
 	real*4, dimension(1:3) :: A,B,C,D,E,F,G,H,d1,d2,d3
 	real*4, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh
 	real*4, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh
+	real*4, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh  
 	real*4 :: A_IPH, A_IMH, A_JPH, A_JMH, A_KPH, A_KMH
 	!real*8, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: s1,s2,s3,s4,s5,s6
 	!real*8, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: n1,n2,n3,n4,n5,n6
@@ -59,7 +60,7 @@ end module var_declare
 
 
 
-program euler
+program Euler
 	use variables
 	use var_declare
 	implicit none	
@@ -252,7 +253,72 @@ program euler
 		end do
 	end do
 
-end program euler
+
+
+
+!*********************Computing face centroids*******************************!
+	do i = 0,Nx+1
+		do j = 0,Ny+1
+			do k = 0, Nz+1
+				Fc_iph(i,j,k,1) = 0.25*(x(i+1,j,k+1) + x(i+1,j+1,k+1) + x(i+1,j+1,k) + x(i+1,j,k))
+				Fc_iph(i,j,k,2) = 0.25*(y(i+1,j,k+1) + y(i+1,j+1,k+1) + y(i+1,j+1,k) + y(i+1,j,k))
+				Fc_iph(i,j,k,3) = 0.25*(z(i+1,j,k+1) + z(i+1,j+1,k+1) + z(i+1,j+1,k) + z(i+1,j,k))
+
+				Fc_jph(i,j,k,1) = 0.25*(x(i+1,j+1,k+1) + x(i+1,j+1,k) + x(i,j+1,k) + x(i,j+1,k+1))
+				Fc_jph(i,j,k,2) = 0.25*(y(i+1,j+1,k+1) + y(i+1,j+1,k) + y(i,j+1,k) + y(i,j+1,k+1))
+				Fc_jph(i,j,k,3) = 0.25*(z(i+1,j+1,k+1) + z(i+1,j+1,k) + z(i,j+1,k) + z(i,j+1,k+1))
+	
+				Fc_kph(i,j,k,1) = 0.25*(x(i+1,j+1,k+1) + x(i+1,j,k+1) + x(i,j,k+1) + x(i,j+1,k+1))
+				Fc_kph(i,j,k,2) = 0.25*(y(i+1,j+1,k+1) + y(i+1,j,k+1) + y(i,j,k+1) + y(i,j+1,k+1))
+				Fc_kph(i,j,k,3) = 0.25*(z(i+1,j+1,k+1) + z(i+1,j,k+1) + z(i,j,k+1) + z(i,j+1,k+1))
+			
+				Fc_imh(i,j,k,1) = 0.25*(x(i,j,k+1) + x(i,j+1,k+1) + x(i,j+1,k) + x(i,j,k))
+				Fc_imh(i,j,k,2) = 0.25*(y(i,j,k+1) + y(i,j+1,k+1) + y(i,j+1,k) + y(i,j,k))
+				Fc_imh(i,j,k,3) = 0.25*(z(i,j,k+1) + z(i,j+1,k+1) + z(i,j+1,k) + z(i,j,k))
+
+				Fc_jmh(i,j,k,1) = 0.25*(x(i,j,k+1) + x(i,j,k) + x(i+1,j,k) + x(i+1,j,k+1))
+				Fc_jmh(i,j,k,2) = 0.25*(y(i,j,k+1) + y(i,j,k) + y(i+1,j,k) + y(i+1,j,k+1))
+				Fc_jmh(i,j,k,3) = 0.25*(z(i,j,k+1) + z(i,j,k) + z(i+1,j,k) + z(i+1,j,k+1))
+			
+				Fc_kmh(i,j,k,1) = 0.25*(x(i,j,k) + x(i+1,j,k) + x(i+1,j+1,k) + x(i,j+1,k))
+				Fc_kmh(i,j,k,2) = 0.25*(y(i,j,k) + y(i+1,j,k) + y(i+1,j+1,k) + y(i,j+1,k))
+				Fc_kmh(i,j,k,3) = 0.25*(z(i,j,k) + z(i+1,j,k) + z(i+1,j+1,k) + z(i,j+1,k))
+			end do
+		end do
+	end do
+
+
+!***********************************Compute volume*****************************************!
+subroutine Volume
+	Vol = 0.0
+	d2(1) = B(1) - H(1)
+	d2(2) = B(2) - H(2)
+	d2(3) = B(3) - H(3)
+
+	d1(1) = A_iph(i,j,k,1)
+	d1(2) = A_iph(i,j,k,2)
+	d1(3) = A_iph(i,j,k,3)
+
+	call dot_prod(d1,d2)
+	Vol = Vol + d4
+
+	d1(1) = A_jph(i,j,k,1)
+	d1(2) = A_jph(i,j,k,2)
+	d1(3) = A_jph(i,j,k,3)
+
+	call dot_prod(d1,d2)
+	Vol = Vol + d4
+
+	d1(1) = A_jph(i,j,k,1)
+	d1(2) = A_jph(i,j,k,2)
+	d1(3) = A_jph(i,j,k,3)
+
+	call dot_prod(d1,d2)
+	Vol = Vol + d4
+
+	Cell_Volume = (1.0/3.0)*Vol 
+
+end program Euler
 
 
 
@@ -272,5 +338,14 @@ subroutine cross_prod(d1,d2)
 end subroutine cross_prod
 
 
+
+subroutine dot_prod(d1,d2)
+	use variables
+	use var_declare
+	implicit none
+
+	d4 = d1(1)*d2(1) + d1(2)*d2(2) + d1(3)*d2(3)
+
+end subroutine dot_prod
 
 

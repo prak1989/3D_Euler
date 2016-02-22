@@ -9,8 +9,10 @@
 
 module Geometry
 implicit none
+		integer,parameter :: Nx = 4, Ny = 4, Nz = 4
+		double precision, parameter :: gamma = 1.40d0, del_t = 1E-3
+		double precision, parameter :: XUpper = 1.0d0, XLower = 0.0d0, YUpper = 1.0d0, YLower = 0.0d0, ZUpper = 1.0d0, ZLower = 0.0d0 
 contains
-
 !---------------------------------------------------------------------------------------------------------------------------!
 !********************************************** Compute volume *************************************************************!
 !---------------------------------------------------------------------------------------------------------------------------!
@@ -51,6 +53,7 @@ contains
 !############################################################################################################################!
 
 
+
 !----------------------------------------------------------------------------------------------------------------------------!
 !**************************************************** Face centroids ********************************************************!
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -58,7 +61,6 @@ contains
 	subroutine Face_centroids(x,y,z,Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh)
 	implicit none
 		integer :: i,j,k
-		integer,parameter :: Nx = 10, Ny = 10, Nz = 10
 		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: x, y, z
 		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh
 
@@ -106,10 +108,13 @@ contains
 		Cross_Soln(1) = ((d1(2)*d2(3))- (d2(2)*d1(3)))
 		Cross_Soln(2) = -((d1(1)*d2(3))- (d2(1)*d1(3)))
 		Cross_Soln(3) = ((d1(1)*d2(2))- (d2(1)*d1(2)))
-		
+	
+	open(unit = 65, file="Cross_prod.dat")		
+	write(65,'(3E30.18)')  Cross_Soln(1), Cross_Soln(2), Cross_Soln(3) 
+	write (65,*)
+
 	end subroutine cross_prod
 !############################################################################################################################!
-
 
 
 
@@ -122,6 +127,10 @@ contains
 		double precision, dimension(1:3) :: d1, d2
 		double precision :: Dot_Soln 
 		Dot_Soln = d1(1)*d2(1) + d1(2)*d2(2) + d1(3)*d2(3)
+
+	open(unit = 75, file="Dot_prod.dat")
+	write(75,'(1E30.18)')  Dot_Soln
+	write(75,*)
 
 	end subroutine dot_prod
 end module Geometry
@@ -138,7 +147,6 @@ program Euler
 	use Geometry
 	implicit none	
 	integer :: i,j,k,l
-	integer,parameter :: Nx = 10, Ny = 10, Nz = 10
 	double precision, dimension(1:3) :: A,B,C,D,E,F,G,H
 	double precision, dimension(1:3) :: d1,d2,Cross_Soln	
 	double precision :: dx, dy, dz,Dot_Soln, Cell_Volume
@@ -161,7 +169,6 @@ program Euler
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_y_iph, Flux_y_jph, Flux_y_kph, Flux_y_imh, Flux_y_jmh, Flux_y_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_z_iph, Flux_z_jph, Flux_z_kph, Flux_z_imh, Flux_z_jmh, Flux_z_kmh
 	double precision, dimension(0:Nx+1, 0:Ny+1, 0:Nz+1) :: surf_mag_iph, surf_mag_imh, surf_mag_jph, surf_mag_jmh, surf_mag_kph, surf_mag_kmh	
-	double precision, parameter :: gamma = 1.40d0, XUpper = 1.0d0, XLower = 0.0d0, YUpper = 0.50d0, YLower = 0.0d0, ZUpper = 0.50d0, ZLower = 0.0d0, del_t = 1E-3
 
 	
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -242,8 +249,6 @@ program Euler
 				H(1) = x(i,j,k)
 				H(2) = y(i,j,k)
 				H(3) = z(i,j,k)
-
-
 !----------------------------------------------------------------------------------------------------------------------------!
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Area and unit normal for the 6 faces <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -267,6 +272,11 @@ program Euler
 				n_iph(i,j,k,1) = A_iph(i,j,k,1)/surf_mag_iph(i,j,k)
 				n_iph(i,j,k,2) = A_iph(i,j,k,2)/surf_mag_iph(i,j,k)
 				n_iph(i,j,k,3) = A_iph(i,j,k,3)/surf_mag_iph(i,j,k)
+
+
+				open(unit = 85, file="Area_unit_normal.dat")
+				write(85,'(7E25.10)')  A_iph(i,j,k,1), A_iph(i,j,k,2), A_iph(i,j,k,3), surf_mag_iph(i,j,k), n_iph(i,j,k,1), n_iph(i,j,k,2), n_iph(i,j,k,3)
+				!write(85,*)
 !----------------------------------------------------------------------------------------------------------------------------!
 !************************************** Area and unit normal @ i-1/2 ********************************************************!
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -288,6 +298,11 @@ program Euler
 				n_imh(i,j,k,1) = A_imh(i,j,k,1)/surf_mag_imh(i,j,k)
 				n_imh(i,j,k,2) = A_imh(i,j,k,2)/surf_mag_imh(i,j,k)
 				n_imh(i,j,k,3) = A_imh(i,j,k,3)/surf_mag_imh(i,j,k)
+
+
+				open(unit = 85, file="Area_unit_normal.dat")
+				write(85,'(7E25.10)')  A_imh(i,j,k,1), A_imh(i,j,k,2), A_imh(i,j,k,3), surf_mag_imh(i,j,k), n_imh(i,j,k,1), n_imh(i,j,k,2), n_imh(i,j,k,3)
+				!write(85,*)
 !----------------------------------------------------------------------------------------------------------------------------!
 !************************************* Area and unit normal @ j+1/2 *********************************************************!
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -309,6 +324,11 @@ program Euler
 				n_jph(i,j,k,1) = A_jph(i,j,k,1)/surf_mag_jph(i,j,k)
 				n_jph(i,j,k,2) = A_jph(i,j,k,2)/surf_mag_jph(i,j,k)
 				n_jph(i,j,k,3) = A_jph(i,j,k,3)/surf_mag_jph(i,j,k)
+
+
+				open(unit = 85, file="Area_unit_normal.dat")
+				write(85,'(7E25.10)')  A_jph(i,j,k,1), A_jph(i,j,k,2), A_jph(i,j,k,3), surf_mag_jph(i,j,k), n_jph(i,j,k,1), n_jph(i,j,k,2), n_jph(i,j,k,3)
+				!write(85,*)
 !----------------------------------------------------------------------------------------------------------------------------!
 !************************************* Area and unit normal @ j-1/2 *********************************************************!
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -329,7 +349,12 @@ program Euler
 			
 				n_jmh(i,j,k,1) = A_jmh(i,j,k,1)/surf_mag_jmh(i,j,k)
 				n_jmh(i,j,k,2) = A_jmh(i,j,k,2)/surf_mag_jmh(i,j,k)
-				n_jmh(i,j,k,3) = A_jmh(i,j,k,3)/surf_mag_jmh(i,j,k)	
+				n_jmh(i,j,k,3) = A_jmh(i,j,k,3)/surf_mag_jmh(i,j,k)
+
+
+				open(unit = 85, file="Area_unit_normal.dat")
+				write(85,'(7E25.10)')  A_jmh(i,j,k,1), A_jmh(i,j,k,2), A_jmh(i,j,k,3), surf_mag_jmh(i,j,k), n_jmh(i,j,k,1), n_jmh(i,j,k,2), n_jmh(i,j,k,3)
+				!write(85,*)	
 !----------------------------------------------------------------------------------------------------------------------------!
 !************************************ Area and unit normal @ k+1/2 **********************************************************!
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -351,6 +376,11 @@ program Euler
 				n_kph(i,j,k,1) = A_kph(i,j,k,1)/surf_mag_kph(i,j,k)
 				n_kph(i,j,k,2) = A_kph(i,j,k,2)/surf_mag_kph(i,j,k)
 				n_kph(i,j,k,3) = A_kph(i,j,k,3)/surf_mag_kph(i,j,k)
+
+
+				open(unit = 85, file="Area_unit_normal.dat")
+				write(85,'(7E25.10)')  A_kph(i,j,k,1), A_kph(i,j,k,2), A_kph(i,j,k,3), surf_mag_kph(i,j,k), n_kph(i,j,k,1), n_kph(i,j,k,2), n_kph(i,j,k,3)
+				!write(85,*)
 !----------------------------------------------------------------------------------------------------------------------------!
 !*********************************** Area and unit normal @ k-1/2 ***********************************************************!
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -373,13 +403,19 @@ program Euler
 				n_kmh(i,j,k,2) = A_kmh(i,j,k,2)/surf_mag_kmh(i,j,k)
 				n_kmh(i,j,k,3) = A_kmh(i,j,k,3)/surf_mag_kmh(i,j,k)
 
+
+				open(unit = 85, file="Area_unit_normal.dat")
+				write(85,'(7E25.10)')  A_kmh(i,j,k,1), A_kmh(i,j,k,2), A_kmh(i,j,k,3), surf_mag_kmh(i,j,k), n_kmh(i,j,k,1), n_kmh(i,j,k,2), n_kmh(i,j,k,3)
+				write(85,*)
+				write(85,*)
+				write(85,*) 'For the next cell volume'
+
 				call Volume(B,H,A_iph(i,j,k,1:3), A_jph(i,j,k,1:3), A_kph(i,j,k,1:3),Cell_Volume)
 				vol(i,j,k) = Cell_Volume
 			end do
 		end do
 	end do
 !#################################################################################################################################!
-
 
 
 
@@ -413,7 +449,6 @@ program Euler
 	end do
 
 !############################################## End of Initial conditions ###########################################################!
-
 
 
 
@@ -542,6 +577,7 @@ program Euler
 
 
 
+
 !--------------------------------------------------------------------------------------------------------------------------------------!
 !************************************************* Updating next time step ************************************************************!
 !--------------------------------------------------------------------------------------------------------------------------------------!
@@ -556,6 +592,7 @@ program Euler
 			end do
 		end do
 !######################################################################################################################################!
+
 
 
 

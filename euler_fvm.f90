@@ -128,6 +128,12 @@ end module Geometry
 !############################################################################################################################!
 
 
+
+
+!----------------------------------------------------------------------------------------------------------------------------!
+!*************************************************** Main loop **************************************************************!
+!----------------------------------------------------------------------------------------------------------------------------!
+
 program Euler
 	use Geometry
 	implicit none	
@@ -147,7 +153,7 @@ program Euler
 	double precision :: BCRIGHT_RHO, BCRIGHT_UX, BCRIGHT_UY, BCRIGHT_UZ, BCRIGHT_PR
 	double precision :: BCFRONT_RHO, BCFRONT_UX, BCFRONT_UY, BCFRONT_UZ, BCFRONT_PR
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: U, Flux_x, Flux_y, Flux_z 
-	double precision :: BCBOTTOM_RHO, BCBOTTOM_UX, BCBOTTOM_UY, BCBOTTOM_UZ, BCBOTTOM_PR
+	double precision :: BCBOTTOM_RHO, BCBOTTOM_UX, BCBOTTOM_UY, BCBOTTOM_UZ, BCBOTTOM_PR, time
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh  
@@ -155,7 +161,7 @@ program Euler
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_y_iph, Flux_y_jph, Flux_y_kph, Flux_y_imh, Flux_y_jmh, Flux_y_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_z_iph, Flux_z_jph, Flux_z_kph, Flux_z_imh, Flux_z_jmh, Flux_z_kmh
 	double precision, dimension(0:Nx+1, 0:Ny+1, 0:Nz+1) :: surf_mag_iph, surf_mag_imh, surf_mag_jph, surf_mag_jmh, surf_mag_kph, surf_mag_kmh	
-	double precision, parameter :: gamma = 1.40d0, XUpper = 1.0d0, XLower = 0.0d0, YUpper = 0.50d0, YLower = 0.0d0, ZUpper = 0.50d0, ZLower = 0.0d0, del_t = 1E-3, time
+	double precision, parameter :: gamma = 1.40d0, XUpper = 1.0d0, XLower = 0.0d0, YUpper = 0.50d0, YLower = 0.0d0, ZUpper = 0.50d0, ZLower = 0.0d0, del_t = 1E-3
 
 	
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -415,7 +421,7 @@ program Euler
 !----------------------------------------------------------------------------------------------------------------------------------!
 !********************************************** Boundary conditions ***************************************************************!
 !----------------------------------------------------------------------------------------------------------------------------------!		
-	while(time <= 1.0) do
+	do while(time <= 1.0) 
 		do k = 0,Nz+1
 			do j = 0,Ny+1
 				rho(0,j,k) = BCLEFT_RHO
@@ -477,22 +483,22 @@ program Euler
 			do j = 0,Ny+1
 				do i = 0,Nx+1
 					Flux_x(i,j,k,1) = rho(i,j,k) * ux(i,j,k)
-					Flux_x(i,j,k,2) = (rho(i,j,k) * ux(i,j,k)**2) + p(i,j,k))
+					Flux_x(i,j,k,2) = (rho(i,j,k) * ux(i,j,k)**2) + p(i,j,k)
 					Flux_x(i,j,k,3) = rho(i,j,k) * ux(i,j,k) * uy(i,j,k)
 					Flux_x(i,j,k,4) = rho(i,j,k) * ux(i,j,k) * uz(i,j,k)
-					Flux_x(i,j,k,5) = (U(i,j,k,5) + p(i,j,k)) * ux(i,j,k)
+					Flux_x(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * ux(i,j,k)
 
 					Flux_y(i,j,k,1) = rho(i,j,k) * uy(i,j,k)
 					Flux_y(i,j,k,2) = rho(i,j,k) * uy(i,j,k) * ux(i,j,k)
-					Flux_y(i,j,k,3) = (rho(i,j,k) * uy(i,j,k)**2) + p(i,j,k))          
+					Flux_y(i,j,k,3) = (rho(i,j,k) * uy(i,j,k)**2) + p(i,j,k)          
 					Flux_y(i,j,k,4) = rho(i,j,k) * uy(i,j,k) * uz(i,j,k)
-					Flux_y(i,j,k,5) = (U(i,j,k,5) + p(i,j,k)) * uy(i,j,k)
+					Flux_y(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * uy(i,j,k)
 
 					Flux_z(i,j,k,1) = rho(i,j,k) * uy(i,j,k)
 					Flux_z(i,j,k,2) = rho(i,j,k) * uz(i,j,k) * ux(i,j,k)
 					Flux_z(i,j,k,3) = rho(i,j,k) * uz(i,j,k) * uy(i,j,k)          
-					Flux_z(i,j,k,4) = (rho(i,j,k) * uz(i,j,k)**2) + p(i,j,k))  
-					Flux_z(i,j,k,5) = (U(i,j,k,5) + p(i,j,k)) * uz(i,j,k)
+					Flux_z(i,j,k,4) = (rho(i,j,k) * uz(i,j,k)**2) + p(i,j,k)  
+					Flux_z(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * uz(i,j,k)
 				end do
 			end do
 		end do
@@ -544,13 +550,7 @@ program Euler
 			do k = 1,Nz
 				do j = 1,Ny
 					do i = 1,Nx
-						U(i,j,k,l) = U(i,j,k,l) - ((del_t/Vol(i,j,k))*((Flux_x_iph(i,j,k,l)*n_iph(i,j,k,1) + Flux_y_iph(i,j,k,l)*n_iph(i,j,k,2) + 
-						Flux_z_iph(i,j,k,l)*n_iph(i,j,k,3))*surf_mag_iph(i,j,k) - (Flux_x_imh(i,j,k,l)*n_imh(i,j,k,1) + Flux_y_imh(i,j,k,l)*n_imh(i,j,k,2) + 
-						Flux_z_imh(i,j,k,l)*n_imh(i,j,k,3))*surf_mag_imh(i,j,k) + (Flux_x_jph(i,j,k,l)*n_jph(i,j,k,1) + Flux_y_jph(i,j,k,l)*n_jph(i,j,k,2) + 
-						Flux_z_jph(i,j,k,l)*n_jph(i,j,k,3))*surf_mag_jph(i,j,k) - (Flux_x_jmh(i,j,k,l)*n_jmh(i,j,k,1) + Flux_y_jmh(i,j,k,l)*n_jmh(i,j,k,2) + 
-						Flux_z_jmh(i,j,k,l)*n_jmh(i,j,k,3))*surf_mag_jmh(i,j,k) + (Flux_x_kph(i,j,k,l)*n_kph(i,j,k,1) + Flux_y_kph(i,j,k,l)*n_kph(i,j,k,2) + 
-						Flux_z_kph(i,j,k,l)*n_kph(i,j,k,3))*surf_mag_kph(i,j,k) - (Flux_x_kmh(i,j,k,l)*n_kmh(i,j,k,1) + Flux_y_kmh(i,j,k,l)*n_kmh(i,j,k,2) + 
-						Flux_z_kmh(i,j,k,l)*n_kmh(i,j,k,3))*surf_mag_kmh(i,j,k)))
+						U(i,j,k,l) = U(i,j,k,l) - ((del_t/Vol(i,j,k))*((Flux_x_iph(i,j,k,l)*n_iph(i,j,k,1) + Flux_y_iph(i,j,k,l)*n_iph(i,j,k,2) + Flux_z_iph(i,j,k,l)*n_iph(i,j,k,3))*surf_mag_iph(i,j,k) - (Flux_x_imh(i,j,k,l)*n_imh(i,j,k,1) + Flux_y_imh(i,j,k,l)*n_imh(i,j,k,2) + Flux_z_imh(i,j,k,l)*n_imh(i,j,k,3))*surf_mag_imh(i,j,k) + (Flux_x_jph(i,j,k,l)*n_jph(i,j,k,1) + Flux_y_jph(i,j,k,l)*n_jph(i,j,k,2) + Flux_z_jph(i,j,k,l)*n_jph(i,j,k,3))*surf_mag_jph(i,j,k) - (Flux_x_jmh(i,j,k,l)*n_jmh(i,j,k,1) + Flux_y_jmh(i,j,k,l)*n_jmh(i,j,k,2) + Flux_z_jmh(i,j,k,l)*n_jmh(i,j,k,3))*surf_mag_jmh(i,j,k) + (Flux_x_kph(i,j,k,l)*n_kph(i,j,k,1) + Flux_y_kph(i,j,k,l)*n_kph(i,j,k,2) + Flux_z_kph(i,j,k,l)*n_kph(i,j,k,3))*surf_mag_kph(i,j,k) - (Flux_x_kmh(i,j,k,l)*n_kmh(i,j,k,1) + Flux_y_kmh(i,j,k,l)*n_kmh(i,j,k,2) + Flux_z_kmh(i,j,k,l)*n_kmh(i,j,k,3))*surf_mag_kmh(i,j,k)))
 					end do
 				end do
 			end do
@@ -575,7 +575,7 @@ program Euler
 		end do
 !#######################################################################################################################################!
 	
-		time += del_t	
+		time = time + del_t	
 	
 	end do !*********End of while loop ***********!
 

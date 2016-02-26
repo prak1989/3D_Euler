@@ -13,6 +13,35 @@ implicit none
 		double precision, parameter :: gamma = 1.40d0, del_t = 1E-3
 		double precision, parameter :: XUpper = 1.0d0, XLower = 0.0d0, YUpper = 1.0d0, YLower = 0.0d0, ZUpper = 1.0d0, ZLower = 0.0d0 
 contains
+
+!---------------------------------------------------------------------------------------------------------------------------!
+!********************************************** CALCULATION OF RHS *********************************************************!
+!---------------------------------------------------------------------------------------------------------------------------!
+
+	subroutine RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,Total_Flux)
+	implicit none
+		integer :: i,j,k,l
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: Vol
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Total_Flux
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_x_iph, Flux_x_jph, Flux_x_kph, Flux_x_imh, Flux_x_jmh, Flux_x_kmh
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_y_iph, Flux_y_jph, Flux_y_kph, Flux_y_imh, Flux_y_jmh, Flux_y_kmh
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_z_iph, Flux_z_jph, Flux_z_kph, Flux_z_imh, Flux_z_jmh, Flux_z_kmh
+		double precision, dimension(0:Nx+1, 0:Ny+1, 0:Nz+1) :: surf_mag_iph, surf_mag_imh, surf_mag_jph, surf_mag_jmh, surf_mag_kph, surf_mag_kmh	
+
+		
+		do l = 1,5
+			do k = 1,Nz
+				do j = 1,Ny
+					do i = 1,Nx
+						Total_Flux(i,j,k,l) = ((1.0d0/Vol(i,j,k))*(((Flux_x_iph(i,j,k,l)*n_iph(i,j,k,1) + Flux_y_iph(i,j,k,l)*n_iph(i,j,k,2) + Flux_z_iph(i,j,k,l)*n_iph(i,j,k,3))*surf_mag_iph(i,j,k)) - ((Flux_x_imh(i,j,k,l)*n_imh(i,j,k,1) + Flux_y_imh(i,j,k,l)*n_imh(i,j,k,2) + Flux_z_imh(i,j,k,l)*n_imh(i,j,k,3))*surf_mag_imh(i,j,k)) + ((Flux_x_jph(i,j,k,l)*n_jph(i,j,k,1) + Flux_y_jph(i,j,k,l)*n_jph(i,j,k,2) + Flux_z_jph(i,j,k,l)*n_jph(i,j,k,3))*surf_mag_jph(i,j,k)) - ((Flux_x_jmh(i,j,k,l)*n_jmh(i,j,k,1) + Flux_y_jmh(i,j,k,l)*n_jmh(i,j,k,2) + Flux_z_jmh(i,j,k,l)*n_jmh(i,j,k,3))*surf_mag_jmh(i,j,k)) + ((Flux_x_kph(i,j,k,l)*n_kph(i,j,k,1) + Flux_y_kph(i,j,k,l)*n_kph(i,j,k,2) + Flux_z_kph(i,j,k,l)*n_kph(i,j,k,3))*surf_mag_kph(i,j,k)) - ((Flux_x_kmh(i,j,k,l)*n_kmh(i,j,k,1) + Flux_y_kmh(i,j,k,l)*n_kmh(i,j,k,2) + Flux_z_kmh(i,j,k,l)*n_kmh(i,j,k,3))*surf_mag_kmh(i,j,k))))
+					end do
+				end do
+			end do
+		end do
+	end subroutine RHS
+
+
 !---------------------------------------------------------------------------------------------------------------------------!
 !********************************************** Compute volume *************************************************************!
 !---------------------------------------------------------------------------------------------------------------------------!
@@ -157,7 +186,7 @@ program Euler
 	integer :: i,j,k,l
 	double precision, dimension(1:3) :: d1,d2,Cross_Soln	
 	double precision :: dx, dy, dz,Dot_Soln, Cell_Volume
-	double precision, dimension(1:Nx, 1:Ny, 1:Nz) :: vol
+	double precision, dimension(0:Nx+2, 0:Ny+2, 0:Nz+2) :: vol
 	double precision :: IC_RHO, IC_UX, IC_UY, IC_UZ, IC_PR
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: x, y, z
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: xc,yc,zc
@@ -168,7 +197,7 @@ program Euler
 	double precision :: BCBACK_RHO, BCBACK_UX, BCBACK_UY, BCBACK_UZ, BCBACK_PR
 	double precision :: BCRIGHT_RHO, BCRIGHT_UX, BCRIGHT_UY, BCRIGHT_UZ, BCRIGHT_PR
 	double precision :: BCFRONT_RHO, BCFRONT_UX, BCFRONT_UY, BCFRONT_UZ, BCFRONT_PR
-	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: U, Flux_x, Flux_y, Flux_z 
+	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: U, Flux_x, Flux_y, Flux_z,Total_Flux 
 	double precision :: BCBOTTOM_RHO, BCBOTTOM_UX, BCBOTTOM_UY, BCBOTTOM_UZ, BCBOTTOM_PR, time
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh  
@@ -177,7 +206,7 @@ program Euler
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_y_iph, Flux_y_jph, Flux_y_kph, Flux_y_imh, Flux_y_jmh, Flux_y_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_z_iph, Flux_z_jph, Flux_z_kph, Flux_z_imh, Flux_z_jmh, Flux_z_kmh
 	double precision, dimension(0:Nx+1, 0:Ny+1, 0:Nz+1) :: surf_mag_iph, surf_mag_imh, surf_mag_jph, surf_mag_jmh, surf_mag_kph, surf_mag_kmh	
-
+	
 	
 !----------------------------------------------------------------------------------------------------------------------------!
 !********************************************* Grid generation (node points) ************************************************!
@@ -401,7 +430,7 @@ program Euler
 				write(35,*)
 
 				
-				call Volume(B,H,A_iph(i,j,k,1:3), A_jph(i,j,k,1:3), A_kph(i,j,k,1:3),Cell_Volume) !************** Calculation of cell volume ******************!
+				call Volume(B,H,A_iph(i,j,k,:), A_jph(i,j,k,:), A_kph(i,j,k,:),Cell_Volume) !************** Calculation of cell volume ******************!
 				vol(i,j,k) = Cell_Volume
 				
 				
@@ -595,7 +624,7 @@ program Euler
 		end do
 !######################################################################################################################################!
 
-
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,Total_Flux)
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
 !************************************************* Updating next time step ************************************************************!
@@ -605,7 +634,7 @@ program Euler
 			do k = 1,Nz
 				do j = 1,Ny
 					do i = 1,Nx
-						U(i,j,k,l) = U(i,j,k,l) - ((del_t/Vol(i,j,k))*(((Flux_x_iph(i,j,k,l)*n_iph(i,j,k,1) + Flux_y_iph(i,j,k,l)*n_iph(i,j,k,2) + Flux_z_iph(i,j,k,l)*n_iph(i,j,k,3))*surf_mag_iph(i,j,k)) - ((Flux_x_imh(i,j,k,l)*n_imh(i,j,k,1) + Flux_y_imh(i,j,k,l)*n_imh(i,j,k,2) + Flux_z_imh(i,j,k,l)*n_imh(i,j,k,3))*surf_mag_imh(i,j,k)) + ((Flux_x_jph(i,j,k,l)*n_jph(i,j,k,1) + Flux_y_jph(i,j,k,l)*n_jph(i,j,k,2) + Flux_z_jph(i,j,k,l)*n_jph(i,j,k,3))*surf_mag_jph(i,j,k)) - ((Flux_x_jmh(i,j,k,l)*n_jmh(i,j,k,1) + Flux_y_jmh(i,j,k,l)*n_jmh(i,j,k,2) + Flux_z_jmh(i,j,k,l)*n_jmh(i,j,k,3))*surf_mag_jmh(i,j,k)) + ((Flux_x_kph(i,j,k,l)*n_kph(i,j,k,1) + Flux_y_kph(i,j,k,l)*n_kph(i,j,k,2) + Flux_z_kph(i,j,k,l)*n_kph(i,j,k,3))*surf_mag_kph(i,j,k)) - ((Flux_x_kmh(i,j,k,l)*n_kmh(i,j,k,1) + Flux_y_kmh(i,j,k,l)*n_kmh(i,j,k,2) + Flux_z_kmh(i,j,k,l)*n_kmh(i,j,k,3))*surf_mag_kmh(i,j,k))))
+						U(i,j,k,l) = U(i,j,k,l) - del_t*Total_Flux(i,j,k,l)
 					end do
 				end do
 			end do

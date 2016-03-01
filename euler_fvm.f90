@@ -40,6 +40,90 @@ contains
 			end do
 		end do
 	end subroutine RHS
+!#####################################################################################################################################!
+
+
+
+!-----------------------------------------------------------------------------------------------------------------------------------!
+!*********************************** Calculation of fluxes including the boundaries ************************************************!	
+!-----------------------------------------------------------------------------------------------------------------------------------!
+	subroutine Flux_x_y_z(rho,ux,uy,uz,p,Flux_x,Flux_y,Flux_z)
+	implicit none
+		integer :: i,j,k
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: rho,ux,uy,uz,p
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_x, Flux_y, Flux_z 
+
+		do k = 0,Nz+1
+			do j = 0,Ny+1
+				do i = 0,Nx+1
+					Flux_x(i,j,k,1) = rho(i,j,k) * ux(i,j,k)
+					Flux_x(i,j,k,2) = (rho(i,j,k) * ux(i,j,k)**2) + p(i,j,k)
+					Flux_x(i,j,k,3) = rho(i,j,k) * ux(i,j,k) * uy(i,j,k)
+					Flux_x(i,j,k,4) = rho(i,j,k) * ux(i,j,k) * uz(i,j,k)
+					Flux_x(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * ux(i,j,k)
+
+					Flux_y(i,j,k,1) = rho(i,j,k) * uy(i,j,k)
+					Flux_y(i,j,k,2) = rho(i,j,k) * uy(i,j,k) * ux(i,j,k)
+					Flux_y(i,j,k,3) = (rho(i,j,k) * uy(i,j,k)**2) + p(i,j,k)          
+					Flux_y(i,j,k,4) = rho(i,j,k) * uy(i,j,k) * uz(i,j,k)
+					Flux_y(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * uy(i,j,k)
+
+					Flux_z(i,j,k,1) = rho(i,j,k) * uy(i,j,k)
+					Flux_z(i,j,k,2) = rho(i,j,k) * uz(i,j,k) * ux(i,j,k)
+					Flux_z(i,j,k,3) = rho(i,j,k) * uz(i,j,k) * uy(i,j,k)          
+					Flux_z(i,j,k,4) = (rho(i,j,k) * uz(i,j,k)**2) + p(i,j,k)  
+					Flux_z(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * uz(i,j,k)
+				end do
+			end do
+		end do
+	end subroutine Flux_x_y_z
+!#####################################################################################################################################!
+
+
+
+!-------------------------------------------------------------------------------------------------------------------------------------!
+!************************************************ Fluxes at the interface ************************************************************!
+!-------------------------------------------------------------------------------------------------------------------------------------!
+	subroutine Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
+	implicit none
+		integer :: i,j,k,l
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_x, Flux_y, Flux_z 
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_x_iph, Flux_x_jph, Flux_x_kph, Flux_x_imh, Flux_x_jmh, Flux_x_kmh
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_y_iph, Flux_y_jph, Flux_y_kph, Flux_y_imh, Flux_y_jmh, Flux_y_kmh
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_z_iph, Flux_z_jph, Flux_z_kph, Flux_z_imh, Flux_z_jmh, Flux_z_kmh
+
+		do l = 1,5
+			do k = 1,Nz
+				do j = 1,Ny
+					do i = 1,Nx
+						Flux_x_iph(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i+1,j,k,l))
+						Flux_x_imh(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i-1,j,k,l))
+						Flux_x_jph(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i,j+1,k,l))
+						Flux_x_jmh(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i,j-1,k,l))
+						Flux_x_kph(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i,j,k+1,l))
+						Flux_x_kmh(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i,j,k-1,l))	
+
+						Flux_y_iph(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i+1,j,k,l))
+						Flux_y_imh(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i-1,j,k,l))
+						Flux_y_jph(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i,j+1,k,l))
+						Flux_y_jmh(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i,j-1,k,l))
+						Flux_y_kph(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i,j,k+1,l))
+						Flux_y_kmh(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i,j,k-1,l))
+
+						Flux_z_iph(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i+1,j,k,l))
+						Flux_z_imh(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i-1,j,k,l))
+						Flux_z_jph(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i,j+1,k,l))
+						Flux_z_jmh(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i,j-1,k,l))
+						Flux_z_kph(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i,j,k+1,l))
+						Flux_z_kmh(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i,j,k-1,l))	
+					end do
+				end do
+			end do
+		end do
+	end subroutine Interface_Fluxes
+!######################################################################################################################################!
+
+
 
 
 !---------------------------------------------------------------------------------------------------------------------------!
@@ -138,6 +222,10 @@ contains
 		Cell_center(3) = 0.1250d0*(A(3) + B(3) + C(3) + D(3) + E(3) + F(3) + G(3) + H(3))
 
 	end subroutine Cell_centroid
+!############################################################################################################################!
+
+
+
 
 !----------------------------------------------------------------------------------------------------------------------------!
 !*********************************************** Cross Product **************************************************************!
@@ -176,6 +264,10 @@ end module Geometry
 
 
 
+
+
+
+
 !----------------------------------------------------------------------------------------------------------------------------!
 !*************************************************** Main loop **************************************************************!
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -186,8 +278,8 @@ program Euler
 	integer :: i,j,k,l
 	double precision, dimension(1:3) :: d1,d2,Cross_Soln	
 	double precision :: dx, dy, dz,Dot_Soln, Cell_Volume
-	double precision, dimension(0:Nx+2, 0:Ny+2, 0:Nz+2) :: vol
 	double precision :: IC_RHO, IC_UX, IC_UY, IC_UZ, IC_PR
+	double precision, dimension(0:Nx+2, 0:Ny+2, 0:Nz+2) :: vol
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: x, y, z
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: xc,yc,zc
 	double precision, dimension(1:3) :: A,B,C,D,E,F,G,H,Cell_center
@@ -197,15 +289,16 @@ program Euler
 	double precision :: BCBACK_RHO, BCBACK_UX, BCBACK_UY, BCBACK_UZ, BCBACK_PR
 	double precision :: BCRIGHT_RHO, BCRIGHT_UX, BCRIGHT_UY, BCRIGHT_UZ, BCRIGHT_PR
 	double precision :: BCFRONT_RHO, BCFRONT_UX, BCFRONT_UY, BCFRONT_UZ, BCFRONT_PR
-	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: U, Flux_x, Flux_y, Flux_z,RHS_1,RHS_2,RHS_3,RHS_4  
 	double precision :: BCBOTTOM_RHO, BCBOTTOM_UX, BCBOTTOM_UY, BCBOTTOM_UZ, BCBOTTOM_PR, time
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh  
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh,Vol_Centroid
+	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: U, Flux_x, Flux_y, Flux_z,RHS_1,RHS_2,RHS_3,RHS_4 
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_x_iph, Flux_x_jph, Flux_x_kph, Flux_x_imh, Flux_x_jmh, Flux_x_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_y_iph, Flux_y_jph, Flux_y_kph, Flux_y_imh, Flux_y_jmh, Flux_y_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_z_iph, Flux_z_jph, Flux_z_kph, Flux_z_imh, Flux_z_jmh, Flux_z_kmh
 	double precision, dimension(0:Nx+1, 0:Ny+1, 0:Nz+1) :: surf_mag_iph, surf_mag_imh, surf_mag_jph, surf_mag_jmh, surf_mag_kph, surf_mag_kmh	
+
 	
 	
 !----------------------------------------------------------------------------------------------------------------------------!
@@ -419,8 +512,6 @@ program Euler
 
 !##############################################################################################################################!
 				
-				
-
 				call Cell_centroid(A,B,C,D,E,F,G,H,Cell_center) !************** Calculation of cell centroid ******************!
 				open(unit = 35, file="Volume_centroid.dat")
 				do l = 1,3
@@ -561,70 +652,6 @@ program Euler
 
 
 
-!-----------------------------------------------------------------------------------------------------------------------------------!
-!*********************************** Calculation of fluxes including the boundaries ************************************************!	
-!-----------------------------------------------------------------------------------------------------------------------------------!
-		do k = 0,Nz+1
-			do j = 0,Ny+1
-				do i = 0,Nx+1
-					Flux_x(i,j,k,1) = rho(i,j,k) * ux(i,j,k)
-					Flux_x(i,j,k,2) = (rho(i,j,k) * ux(i,j,k)**2) + p(i,j,k)
-					Flux_x(i,j,k,3) = rho(i,j,k) * ux(i,j,k) * uy(i,j,k)
-					Flux_x(i,j,k,4) = rho(i,j,k) * ux(i,j,k) * uz(i,j,k)
-					Flux_x(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * ux(i,j,k)
-
-					Flux_y(i,j,k,1) = rho(i,j,k) * uy(i,j,k)
-					Flux_y(i,j,k,2) = rho(i,j,k) * uy(i,j,k) * ux(i,j,k)
-					Flux_y(i,j,k,3) = (rho(i,j,k) * uy(i,j,k)**2) + p(i,j,k)          
-					Flux_y(i,j,k,4) = rho(i,j,k) * uy(i,j,k) * uz(i,j,k)
-					Flux_y(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * uy(i,j,k)
-
-					Flux_z(i,j,k,1) = rho(i,j,k) * uy(i,j,k)
-					Flux_z(i,j,k,2) = rho(i,j,k) * uz(i,j,k) * ux(i,j,k)
-					Flux_z(i,j,k,3) = rho(i,j,k) * uz(i,j,k) * uy(i,j,k)          
-					Flux_z(i,j,k,4) = (rho(i,j,k) * uz(i,j,k)**2) + p(i,j,k)  
-					Flux_z(i,j,k,5) = (((p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)) + p(i,j,k)) * uz(i,j,k)
-				end do
-			end do
-		end do
-!#####################################################################################################################################!
-
-
-
-!-------------------------------------------------------------------------------------------------------------------------------------!
-!************************************************ Fluxes at the interface ************************************************************!
-!-------------------------------------------------------------------------------------------------------------------------------------!
-		do l = 1,5
-			do k = 1,Nz
-				do j = 1,Ny
-					do i = 1,Nx
-						Flux_x_iph(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i+1,j,k,l))
-						Flux_x_imh(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i-1,j,k,l))
-						Flux_x_jph(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i,j+1,k,l))
-						Flux_x_jmh(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i,j-1,k,l))
-						Flux_x_kph(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i,j,k+1,l))
-						Flux_x_kmh(i,j,k,l) = 0.50d0*(Flux_x(i,j,k,l) + Flux_x(i,j,k-1,l))	
-
-						Flux_y_iph(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i+1,j,k,l))
-						Flux_y_imh(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i-1,j,k,l))
-						Flux_y_jph(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i,j+1,k,l))
-						Flux_y_jmh(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i,j-1,k,l))
-						Flux_y_kph(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i,j,k+1,l))
-						Flux_y_kmh(i,j,k,l) = 0.50d0*(Flux_y(i,j,k,l) + Flux_y(i,j,k-1,l))
-
-						Flux_z_iph(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i+1,j,k,l))
-						Flux_z_imh(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i-1,j,k,l))
-						Flux_z_jph(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i,j+1,k,l))
-						Flux_z_jmh(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i,j-1,k,l))
-						Flux_z_kph(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i,j,k+1,l))
-						Flux_z_kmh(i,j,k,l) = 0.50d0*(Flux_z(i,j,k,l) + Flux_z(i,j,k-1,l))	
-					end do
-				end do
-			end do
-		end do
-!######################################################################################################################################!
-
-
 
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
@@ -632,6 +659,10 @@ program Euler
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> (REFERENCE: Hoffmann Vol-I) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
 !--------------------------------------------------------------------------------------------------------------------------------------!
 
+		call Flux_x_y_z(rho,ux,uy,uz,p,Flux_x,Flux_y,Flux_z)
+
+		call Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
+		
 		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_1)
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
@@ -662,6 +693,9 @@ program Euler
 		end do
 !#######################################################################################################################################!
 
+		call Flux_x_y_z(rho,ux,uy,uz,p,Flux_x,Flux_y,Flux_z)
+
+		call Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
 
 		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_2)
 
@@ -693,7 +727,10 @@ program Euler
 			end do
 		end do
 !#######################################################################################################################################!
+		
+		call Flux_x_y_z(rho,ux,uy,uz,p,Flux_x,Flux_y,Flux_z)
 
+		call Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
 
 		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_3)
 
@@ -725,8 +762,11 @@ program Euler
 			end do
 		end do
 !#######################################################################################################################################!
-	
+		
+		call Flux_x_y_z(rho,ux,uy,uz,p,Flux_x,Flux_y,Flux_z)
 
+		call Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
+	
 		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_4)
 
 
@@ -737,7 +777,7 @@ program Euler
 			do k = 1,Nz
 				do j = 1,Ny
 					do i = 1,Nx
-						U(i,j,k,l) = U(i,j,k,l) - (del_t/6.0d0)*(RHS_1(i,j,k,l)+ (2.0d0*RHS_2(i,j,k,l)) + (2.0d0*RHS_3(i,j,k,l)) + RHS_4(i,j,k,l))
+						U(i,j,k,l) = U(i,j,k,l) - (del_t/6.0d0)*(RHS_1(i,j,k,l) + (2.0d0*RHS_2(i,j,k,l)) + (2.0d0*RHS_3(i,j,k,l)) + RHS_4(i,j,k,l))
 					end do
 				end do
 			end do

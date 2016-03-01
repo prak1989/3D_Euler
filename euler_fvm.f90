@@ -197,7 +197,7 @@ program Euler
 	double precision :: BCBACK_RHO, BCBACK_UX, BCBACK_UY, BCBACK_UZ, BCBACK_PR
 	double precision :: BCRIGHT_RHO, BCRIGHT_UX, BCRIGHT_UY, BCRIGHT_UZ, BCRIGHT_PR
 	double precision :: BCFRONT_RHO, BCFRONT_UX, BCFRONT_UY, BCFRONT_UZ, BCFRONT_PR
-	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: U, Flux_x, Flux_y, Flux_z,Total_Flux 
+	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: U, Flux_x, Flux_y, Flux_z,RHS_1,RHS_2,RHS_3,RHS_4  
 	double precision :: BCBOTTOM_RHO, BCBOTTOM_UX, BCBOTTOM_UY, BCBOTTOM_UZ, BCBOTTOM_PR, time
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh  
@@ -628,11 +628,11 @@ program Euler
 
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
-!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Fourth-order Modified Runge-Kutta time stepping <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Fourth-order Runge-Kutta time stepping <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> (REFERENCE: Hoffmann Vol-I) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
 !--------------------------------------------------------------------------------------------------------------------------------------!
 
-		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,Total_Flux)
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_1)
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
 !************************************************* RK 1st time step *******************************************************************!
@@ -641,7 +641,7 @@ program Euler
 			do k = 1,Nz
 				do j = 1,Ny
 					do i = 1,Nx
-						U(i,j,k,l) = U(i,j,k,l) - (1.0d0/4.0d0)*del_t*Total_Flux(i,j,k,l)
+						U(i,j,k,l) = U(i,j,k,l) - (1.0d0/2.0d0)*del_t*RHS_1(i,j,k,l)
 					end do
 				end do
 			end do
@@ -663,7 +663,7 @@ program Euler
 !#######################################################################################################################################!
 
 
-		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,Total_Flux)
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_2)
 
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
@@ -673,7 +673,7 @@ program Euler
 			do k = 1,Nz
 				do j = 1,Ny
 					do i = 1,Nx
-						U(i,j,k,l) = U(i,j,k,l) - (1.0d0/3.0d0)*del_t*Total_Flux(i,j,k,l)
+						U(i,j,k,l) = U(i,j,k,l) - (1.0d0/2.0d0)*del_t*RHS_2(i,j,k,l)
 					end do
 				end do
 			end do
@@ -695,7 +695,7 @@ program Euler
 !#######################################################################################################################################!
 
 
-		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,Total_Flux)
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_3)
 
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
@@ -705,7 +705,7 @@ program Euler
 			do k = 1,Nz
 				do j = 1,Ny
 					do i = 1,Nx
-						U(i,j,k,l) = U(i,j,k,l) - (1.0d0/2.0d0)*del_t*Total_Flux(i,j,k,l)
+						U(i,j,k,l) = U(i,j,k,l) - del_t*RHS_3(i,j,k,l)
 					end do
 				end do
 			end do
@@ -727,7 +727,7 @@ program Euler
 !#######################################################################################################################################!
 	
 
-		call  RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,Total_Flux)
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_4)
 
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
@@ -737,13 +737,13 @@ program Euler
 			do k = 1,Nz
 				do j = 1,Ny
 					do i = 1,Nx
-						U(i,j,k,l) = U(i,j,k,l) - del_t*Total_Flux(i,j,k,l)
+						U(i,j,k,l) = U(i,j,k,l) - (del_t/6.0d0)*(RHS_1(i,j,k,l)+ (2.0d0*RHS_2(i,j,k,l)) + (2.0d0*RHS_3(i,j,k,l)) + RHS_4(i,j,k,l))
 					end do
 				end do
 			end do
 		end do
 !--------------------------------------------------------------------------------------------------------------------------------------!
-!************************************* Retrieving the primitive variables for the next time step ************************************!
+!************************************* Retrieving the primitive variables for the next time step **************************************!
 !--------------------------------------------------------------------------------------------------------------------------------------!
 		do k = 1,Nz
 			do j = 1,Ny

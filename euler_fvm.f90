@@ -16,25 +16,24 @@ contains
 
 !---------------------------------------------------------------------------------------------------------------------------!
 !********************************************** CALCULATION OF RHS *********************************************************!
+!*********************************************** Symmetric Fluxes **********************************************************!
 !---------------------------------------------------------------------------------------------------------------------------!
 
-	subroutine RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,Total_Flux)
+	subroutine RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh,Total_Flux)
 	implicit none
 		integer :: i,j,k,l
 		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: Vol
 		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Total_Flux
-		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh
 		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_x_iph, Flux_x_jph, Flux_x_kph, Flux_x_imh, Flux_x_jmh, Flux_x_kmh
 		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_y_iph, Flux_y_jph, Flux_y_kph, Flux_y_imh, Flux_y_jmh, Flux_y_kmh
 		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:5) :: Flux_z_iph, Flux_z_jph, Flux_z_kph, Flux_z_imh, Flux_z_jmh, Flux_z_kmh
-		double precision, dimension(0:Nx+1, 0:Ny+1, 0:Nz+1) :: surf_mag_iph, surf_mag_imh, surf_mag_jph, surf_mag_jmh, surf_mag_kph, surf_mag_kmh	
-
 		
 		do l = 1,5
 			do k = 1,Nz
 				do j = 1,Ny
 					do i = 1,Nx
-						Total_Flux(i,j,k,l) = ((1.0d0/Vol(i,j,k))*(((Flux_x_iph(i,j,k,l)*n_iph(i,j,k,1) + Flux_y_iph(i,j,k,l)*n_iph(i,j,k,2) + Flux_z_iph(i,j,k,l)*n_iph(i,j,k,3))*surf_mag_iph(i,j,k)) - ((Flux_x_imh(i,j,k,l)*n_imh(i,j,k,1) + Flux_y_imh(i,j,k,l)*n_imh(i,j,k,2) + Flux_z_imh(i,j,k,l)*n_imh(i,j,k,3))*surf_mag_imh(i,j,k)) + ((Flux_x_jph(i,j,k,l)*n_jph(i,j,k,1) + Flux_y_jph(i,j,k,l)*n_jph(i,j,k,2) + Flux_z_jph(i,j,k,l)*n_jph(i,j,k,3))*surf_mag_jph(i,j,k)) - ((Flux_x_jmh(i,j,k,l)*n_jmh(i,j,k,1) + Flux_y_jmh(i,j,k,l)*n_jmh(i,j,k,2) + Flux_z_jmh(i,j,k,l)*n_jmh(i,j,k,3))*surf_mag_jmh(i,j,k)) + ((Flux_x_kph(i,j,k,l)*n_kph(i,j,k,1) + Flux_y_kph(i,j,k,l)*n_kph(i,j,k,2) + Flux_z_kph(i,j,k,l)*n_kph(i,j,k,3))*surf_mag_kph(i,j,k)) - ((Flux_x_kmh(i,j,k,l)*n_kmh(i,j,k,1) + Flux_y_kmh(i,j,k,l)*n_kmh(i,j,k,2) + Flux_z_kmh(i,j,k,l)*n_kmh(i,j,k,3))*surf_mag_kmh(i,j,k))))
+				Total_Flux(i,j,k,l) = (1.0d0/Vol(i,j,k))*((Flux_x_iph(i,j,k,l)*n_iph(i,j,k,1)*A_iph(i,j,k,1) + Flux_y_iph(i,j,k,l)*n_iph(i,j,k,2)*A_iph(i,j,k,2) + Flux_z_iph(i,j,k,l)*n_iph(i,j,k,3)*A_iph(i,j,k,3)) - (Flux_x_imh(i,j,k,l)*n_imh(i,j,k,1)*A_imh(i,j,k,1) + Flux_y_imh(i,j,k,l)*n_imh(i,j,k,2)*A_imh(i,j,k,2) + Flux_z_imh(i,j,k,l)*n_imh(i,j,k,3)*A_imh(i,j,k,3)) + (Flux_x_jph(i,j,k,l)*n_jph(i,j,k,1)*A_jph(i,j,k,1) + Flux_y_jph(i,j,k,l)*n_jph(i,j,k,2)*A_jph(i,j,k,2) + Flux_z_jph(i,j,k,l)*n_jph(i,j,k,3)*A_jph(i,j,k,3)) - (Flux_x_jmh(i,j,k,l)*n_jmh(i,j,k,1)*A_jmh(i,j,k,1) + Flux_y_jmh(i,j,k,l)*n_jmh(i,j,k,2)*A_jmh(i,j,k,2) + Flux_z_jmh(i,j,k,l)*n_jmh(i,j,k,3)*A_jmh(i,j,k,3)) + (Flux_x_kph(i,j,k,l)*n_kph(i,j,k,1)*A_kph(i,j,k,1) + Flux_y_kph(i,j,k,l)*n_kph(i,j,k,2)*A_kph(i,j,k,2) + Flux_z_kph(i,j,k,l)*n_kph(i,j,k,3)*A_kph(i,j,k,3)) - (Flux_x_kmh(i,j,k,l)*n_kmh(i,j,k,1)*A_kmh(i,j,k,1) + Flux_y_kmh(i,j,k,l)*n_kmh(i,j,k,2)*A_kmh(i,j,k,2) + Flux_z_kmh(i,j,k,l)*n_kmh(i,j,k,3)*A_kmh(i,j,k,3)))
 					end do
 				end do
 			end do
@@ -126,9 +125,9 @@ contains
 
 
 
-!---------------------------------------------------------------------------------------------------------------------------!
-!********************************************** Compute volume *************************************************************!
-!---------------------------------------------------------------------------------------------------------------------------!
+!-------------------------------------------------------------------------------------------------------------------------------------!
+!******************************************************** Compute volume *************************************************************!
+!-------------------------------------------------------------------------------------------------------------------------------------!
 
 	subroutine Volume(B,H,A_iph, A_jph, A_kph,Cell_Volume)
 	implicit none
@@ -167,9 +166,9 @@ contains
 
 
 
-!----------------------------------------------------------------------------------------------------------------------------!
-!**************************************************** Face centroids ********************************************************!
-!----------------------------------------------------------------------------------------------------------------------------!
+!-------------------------------------------------------------------------------------------------------------------------------------!
+!************************************************************* Face centroids ********************************************************!
+!-------------------------------------------------------------------------------------------------------------------------------------!
 
 	subroutine Face_centroids(x,y,z,Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh)
 	implicit none
@@ -663,7 +662,7 @@ program Euler
 
 		call Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
 		
-		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_1)
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh,RHS_1)
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
 !************************************************* RK 1st time step *******************************************************************!
@@ -697,7 +696,7 @@ program Euler
 
 		call Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
 
-		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_2)
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh,RHS_2)
 
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
@@ -732,7 +731,7 @@ program Euler
 
 		call Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
 
-		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_3)
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh,RHS_3)
 
 
 !--------------------------------------------------------------------------------------------------------------------------------------!
@@ -767,7 +766,7 @@ program Euler
 
 		call Interface_Fluxes(Flux_x,Flux_y,Flux_z, Flux_x_iph,Flux_x_jph,Flux_x_kph,Flux_x_imh,Flux_x_jmh,Flux_x_kmh,Flux_y_iph,Flux_y_jph,Flux_y_kph,Flux_y_imh,Flux_y_jmh,Flux_y_kmh,Flux_z_iph,Flux_z_jph,Flux_z_kph,Flux_z_imh,Flux_z_jmh,Flux_z_kmh)
 	
-		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,surf_mag_iph,surf_mag_imh, surf_mag_jph,surf_mag_jmh,surf_mag_kph,surf_mag_kmh,RHS_4)
+		call RHS(Vol,Flux_x_iph,Flux_x_imh,Flux_x_jph,Flux_x_jmh,Flux_x_kph,Flux_x_kmh,Flux_y_iph,Flux_y_imh,Flux_y_jph,Flux_y_jmh,Flux_y_kph,Flux_y_kmh,Flux_z_iph,Flux_z_imh,Flux_z_jph,Flux_z_jmh,Flux_z_kph,Flux_z_kmh,n_iph,n_imh,n_jph,n_jmh,n_kph,n_kmh,A_iph,A_imh,A_jph,A_jmh,A_kph,A_kmh,RHS_4)
 
 
 !--------------------------------------------------------------------------------------------------------------------------------------!

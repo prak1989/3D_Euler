@@ -11,6 +11,7 @@ module Geometry
 implicit none
 		integer,parameter :: Nx = 4, Ny = 4, Nz = 4
 		double precision, parameter :: gamma = 1.40d0, del_t = 1E-3
+		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: x, y, z
 		double precision, parameter :: XUpper = 1.0d0, XLower = 0.0d0, YUpper = 1.0d0, YLower = 0.0d0, ZUpper = 1.0d0, ZLower = 0.0d0 
 contains
 
@@ -170,10 +171,9 @@ contains
 !************************************************************* Face centroids ********************************************************!
 !-------------------------------------------------------------------------------------------------------------------------------------!
 
-	subroutine Face_centroids(x,y,z,Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh)
+	subroutine Face_centroids(Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh)
 	implicit none
 		integer :: i,j,k
-		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: x, y, z
 		double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh
 
 		do k = 0,Nz+1
@@ -279,7 +279,6 @@ program Euler
 	double precision :: dx, dy, dz,Dot_Soln, Cell_Volume
 	double precision :: IC_RHO, IC_UX, IC_UY, IC_UZ, IC_PR
 	double precision, dimension(0:Nx+2, 0:Ny+2, 0:Nz+2) :: vol
-	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: x, y, z
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: xc,yc,zc
 	double precision, dimension(1:3) :: A,B,C,D,E,F,G,H,Cell_center
 	double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2) :: rho,ux,uy,uz,p	
@@ -524,7 +523,7 @@ program Euler
 				vol(i,j,k) = Cell_Volume
 				
 				
-				call Face_centroids(x,y,z, Fc_iph, Fc_jph, Fc_kph, Fc_imh, Fc_jmh, Fc_kmh) !************** Calculation of face centroid ******************!
+				call Face_centroids(Fc_iph, Fc_jph, Fc_kph, Fc_imh, Fc_jmh, Fc_kmh) !************** Calculation of face centroid ******************!
 	
 !--------------------------------------------------------------------------------------------------------------------------------!
 !*********************************** Writing the output to a file ***************************************************************!
@@ -534,8 +533,10 @@ program Euler
 				
 
 				open(unit = 55, file="face_centroid.dat")
-				write(55,'(3I2,6E25.10)')k,j,i,Fc_iph(i,j,k,l), Fc_jph(i,j,k,l), Fc_kph(i,j,k,l), Fc_imh(i,j,k,l), Fc_jmh(i,j,k,l), Fc_kmh(i,j,k,l)
-				
+				do l = 1,3
+					write(55,'(4I2,6E25.10)')l,k,j,i,Fc_iph(i,j,k,l), Fc_jph(i,j,k,l), Fc_kph(i,j,k,l), Fc_imh(i,j,k,l), Fc_jmh(i,j,k,l), Fc_kmh(i,j,k,l)
+				end do
+				write(55,*)
 
 				open(unit = 85, file="Area_unit_normal.dat")
 				write(85,'(3I2,7E25.10)') k,j,i,A_iph(i,j,k,1), A_iph(i,j,k,2), A_iph(i,j,k,3), surf_mag_iph(i,j,k), n_iph(i,j,k,1), n_iph(i,j,k,2), n_iph(i,j,k,3)

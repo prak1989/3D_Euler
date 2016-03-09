@@ -3,7 +3,7 @@
 !***********************************  3D - FINITE VOLUME SOLVER FOR EULER EQUATION    ************************************************!
 !***********************************       AUTHOR: PRAKASH (AE15D015)                 ************************************************!
 !***********************************       DATE  : 20 FEBRUARY, 2016                  ************************************************!
-!***********************************       LAST MODIFIED: 22 FEBRUARY, 2016           ************************************************!
+!***********************************       LAST MODIFIED: 8 March, 2016               ************************************************!
 !#####################################################################################################################################!
 !#####################################################################################################################################!
 
@@ -123,14 +123,9 @@ contains
 	end subroutine Interface_Fluxes
 !######################################################################################################################################!
 
-	subroutine Gradient_flux()
-	implicit none	
-		integer :: i,j,k
-		double precision :: 
 
 
 
-	end subroutine Gradient_flux
 !-------------------------------------------------------------------------------------------------------------------------------------!
 !******************************************************** Compute volume *************************************************************!
 !-------------------------------------------------------------------------------------------------------------------------------------!
@@ -148,6 +143,7 @@ contains
 		do k = 0,Nz+1
 			do j = 0,Ny+1
 				do i = 0, Nx+1		
+	
 					B(1) = x(i+1,j+1,k+1)
 					B(2) = y(i+1,j+1,k+1)
 					B(3) = z(i+1,j+1,k+1)
@@ -510,47 +506,8 @@ contains
 			end do
 		end do
 	end subroutine Area_Unit_Normal
-
-!----------------------------------------------------------------------------------------------------------------------------!
-!***************************** Calculation of distance between face centroid and cell centroid ******************************!
-!----------------------------------------------------------------------------------------------------------------------------!
-	subroutine Dist_Face_Volume_centroid(dx_iph,dx_imh,dy_jph,dy_jmh,dz_kph,dz_kmh)
-	implicit none
-		 double precision, dimension (0:Nx+1, 0:Ny+1, 0:Nz+1, 1:3) :: Cell_center
-		 double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh	
-		 double precision, dimension(0:Nx+2,0:Ny+2,0:Nz+2,1:3) :: dx_iph,dx_imh,dy_jph,dy_jmh,dz_kph,dz_kmh
-		
-		call Face_centroids(Fc_iph,Fc_jph,Fc_kph,Fc_imh,Fc_jmh,Fc_kmh)
-		call Cell_centroid(Cell_center)  
-
-		dx_iph(i,j,k,1) = Fc_iph(i,j,k,1) - Cell_center(i,j,k,1) 
-		dx_iph(i,j,k,2) = Fc_iph(i,j,k,2) - Cell_center(i,j,k,1)
-		dx_iph(i,j,k,3) = Fc_iph(i,j,k,3) - Cell_center(i,j,k,1)
-
-		dx_imh(i,j,k,1) = Fc_imh(i,j,k,1) - Cell_center(i,j,k,1)
-		dx_imh(i,j,k,2) = Fc_imh(i,j,k,2) - Cell_center(i,j,k,1)
-		dx_imh(i,j,k,3) = Fc_imh(i,j,k,3) - Cell_center(i,j,k,1)
-
-		dy_jph(i,j,k,1) = Fc_jph(i,j,k,1) - Cell_center(i,j,k,2)
-		dy_jph(i,j,k,2) = Fc_jph(i,j,k,2) - Cell_center(i,j,k,2)
-		dy_jph(i,j,k,3) = Fc_jph(i,j,k,3) - Cell_center(i,j,k,2)
-
-		dy_jmh(i,j,k,1) = Fc_jmh(i,j,k,1) - Cell_center(i,j,k,2)
-		dy_jmh(i,j,k,2) = Fc_jmh(i,j,k,2) - Cell_center(i,j,k,2)
-		dy_jmh(i,j,k,3) = Fc_jmh(i,j,k,3) - Cell_center(i,j,k,2)
-
-		dz_kph(i,j,k,1) = Fc_kph(i,j,k,1) - Cell_center(i,j,k,3)
-		dz_kph(i,j,k,2) = Fc_kph(i,j,k,2) - Cell_center(i,j,k,3)
-		dz_kph(i,j,k,3) = Fc_kph(i,j,k,3) - Cell_center(i,j,k,3)
-
-		dz_kmh(i,j,k,1) = Fc_kmh(i,j,k,1) - Cell_center(i,j,k,3)
-		dz_kmh(i,j,k,2) = Fc_kmh(i,j,k,2) - Cell_center(i,j,k,3)
-		dz_kmh(i,j,k,3) = Fc_kmh(i,j,k,3) - Cell_center(i,j,k,3)
-
-	end subroutine Dist_FC_VC
 end module Geometry
 !############################################################################################################################!
-
 
 
 
@@ -693,11 +650,8 @@ program Euler
 					U(i,j,k,1) = rho(i,j,k)
 					U(i,j,k,2) = rho(i,j,k) * ux(i,j,k)
 					U(i,j,k,3) = rho(i,j,k) * uy(i,j,k)
-					U(i,j,k,4) = rho(i,j,k) * uz(i,j,k)do k = 0,Nz+1
-                        do j = 0,Ny+1
-                                do i = 0, Nx+1
-
-					U(i,j,k,5) = (p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)
+					U(i,j,k,4) = rho(i,j,k) * uz(i,j,k)
+   					U(i,j,k,5) = (p(i,j,k)/(gamma-1.0d0)) + ((rho(i,j,k)*(ux(i,j,k)**2 + uy(i,j,k)**2 + uz(i,j,k)**2))/2.0d0)
 				end do
 			end do
 		end do
@@ -917,4 +871,3 @@ end program Euler
 
 
 
-Prakash Thirunavukkarasu
